@@ -65,9 +65,9 @@ export default function VisualRoundRobin({ data, quantum }) {
                 updated = updated.map((p) =>
                     p.nama === prosesAktif.nama
                         ? {
-                              ...p,
-                              remainingTime: isLastProcess ? 0 : p.remainingTime - 1, // Complete immediately if last process
-                          }
+                            ...p,
+                            remainingTime: isLastProcess ? 0 : p.remainingTime - 1, // Complete immediately if last process
+                        }
                         : p
                 );
 
@@ -118,56 +118,59 @@ export default function VisualRoundRobin({ data, quantum }) {
     }, [time]);
 
     return (
-        <div className="flex flex-col gap-4">
-            <div className="flex justify-between items-center mb-4">
-                <button
-                    onClick={handlePlay}
-                    className="px-4 py-2 bg-purple-500 text-white rounded shadow"
-                >
-                    ▶️ Play
-                </button>
-                <div className="text-lg font-bold">Waktu: {time}s</div>
-            </div>
-
-            <div className="flex gap-4">
-                <div className="w-1/3 p-4 bg-blue-100 rounded">
-                    <h2 className="font-bold mb-2">Antrean</h2>
-                    {queue.map((nama) => (
-                        <div key={nama} className="bg-white p-2 rounded shadow">
-                            🧑 {nama}
-                        </div>
-                    ))}
+        <>
+            <p className="text-center mb-8">Pemilik toko menggunakan sistem adil, semua pelanggan dilayani maksimal 2 detik terlebih dahulu. Jika belum selesai, akan dilanjut giliran sebelumnya.</p>
+            <div className="flex flex-col gap-4">
+                <div className="flex justify-between items-center mb-4">
+                    <button
+                        onClick={handlePlay}
+                        className="px-4 py-2 bg-blue-500 text-white rounded shadow"
+                    >
+                        Mulai
+                    </button>
+                    <div className="text-lg font-bold">{time} detik</div>
                 </div>
 
-                <div className="w-1/3 p-4 bg-yellow-100 rounded">
-                    <h2 className="font-bold mb-2">Meja Donat</h2>
-                    {proses.find((p) => p.status === 'proses') ? (
-                        <div className="bg-white p-4 rounded shadow text-center">
-                            🍩 {proses.find((p) => p.status === 'proses').nama} dilayani
-                        </div>
-                    ) : (
-                        <div className="text-gray-500">Kosong</div>
-                    )}
-                </div>
-
-                <div className="w-1/3 p-4 bg-green-100 rounded">
-                    <h2 className="font-bold mb-2">Meja Makan</h2>
-                    {proses
-                        .filter((p) => p.status === 'selesai')
-                        .sort((a, b) => a.finishTime - b.finishTime)
-                        .map((c) => (
-                            <motion.div
-                                key={c.nama}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ duration: 0.5 }}
-                                className="bg-white p-2 rounded shadow"
-                            >
-                                😋 {c.nama} selesai
-                            </motion.div>
+                <div className="flex gap-4">
+                    <div className="w-1/3 p-4 bg-blue-500 rounded">
+                        <h2 className="font-bold mb-2">Antrean</h2>
+                        {queue.map((nama) => (
+                            <div key={nama} className="bg-white p-1 rounded shadow text-gray-700 text-sm mb-2">
+                                🧑 {nama}
+                            </div>
                         ))}
+                    </div>
+
+                    <div className="w-1/3 p-4 bg-yellow-500 rounded">
+                        <h2 className="font-bold mb-2">Meja Donat</h2>
+                        {proses.find((p) => p.status === 'proses') ? (
+                            <div className="bg-white p-1 rounded shadow text-gray-700 text-sm mb-2">
+                                🍩 {proses.find((p) => p.status === 'proses').nama} dilayani
+                            </div>
+                        ) : (
+                            <div className="text-white-500">Kosong</div>
+                        )}
+                    </div>
+
+                    <div className="w-1/3 p-4 bg-green-500 rounded">
+                        <h2 className="font-bold mb-2">Meja Makan</h2>
+                        {proses
+                            .filter((p) => p.status === 'selesai')
+                            .sort((a, b) => a.finishTime - b.finishTime)
+                            .map((c) => (
+                                <motion.div
+                                    key={c.nama}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ duration: 0.5 }}
+                                    className="bg-white p-1 rounded shadow text-gray-700 text-sm mb-2"
+                                >
+                                    😋 {c.nama} selesai
+                                </motion.div>
+                            ))}
+                    </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 }

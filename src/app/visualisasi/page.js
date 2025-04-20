@@ -9,7 +9,7 @@ import VisualRoundRobin from './visualisasirr';
 export default function VisualisasiPage() {
   const [data, setData] = useState([]);
   const [algorithm, setAlgorithm] = useState('');
-  const [quantum, setQuantum] = useState(0);
+  const [quantum, setQuantum] = useState();
   const [result, setResult] = useState([]);
 
   useEffect(() => {
@@ -45,14 +45,19 @@ export default function VisualisasiPage() {
   const avgTurnaround = result.reduce((sum, p) => sum + p.turnaroundTime, 0) / result.length || 0;
 
   return (
-    <main className="p-4 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Hasil Simulasi: {algorithm}</h1>
+    <main className="p-4 max-w-3xl mx-auto mt-12">
+      <h1 className="text-2xl font-bold mb-2 text-center">Hasil Simulasi {algorithm}</h1>
 
       {result.length > 0 ? (
         <>
+          {algorithm === 'FIFO' && <VisualFifo data={result} />}
+          {algorithm === 'SJF-NP' && <VisualSjfNp data={result} />}
+          {algorithm === 'SJF-P' && <VisualSjfP data={result} />}
+          {algorithm === 'RR' && <VisualRoundRobin data={result} quantum={quantum} />}
+          <br /><br /><br />
           <table className="w-full border mb-4">
             <thead>
-              <tr className="bg-pink-200">
+              <tr className="bg-red-500">
                 <th className="border p-2">Nama</th>
                 <th className="border p-2">Arrival</th>
                 <th className="border p-2">Burst</th>
@@ -64,7 +69,7 @@ export default function VisualisasiPage() {
             <tbody>
               {result.map((p, i) => (
                 <tr key={i} className="text-center">
-                  <td className="border p-1">{p.nama}</td>
+                  <td className="border p-1">Pelanggan {i + 1}</td>
                   <td className="border p-1">{p.arrivalTime}</td>
                   <td className="border p-1">{p.burstTime}</td>
                   {/* <td className="border p-1">{p.finishTime}</td> */}
@@ -88,12 +93,7 @@ export default function VisualisasiPage() {
             ))}
           </div> */}
 
-          {algorithm === 'FIFO' && <VisualFifo data={result} />}
-          {algorithm === 'SJF-NP' && <VisualSjfNp data={result} />}
-          {algorithm === 'SJF-P' && <VisualSjfP data={result} />}
-          {algorithm === 'RR' && <VisualRoundRobin data={result} quantum={quantum}/>}
-
-          < div className="mt-6">
+          <div className="flex justify-center mt-10 mb-12">
             <button
               onClick={() => {
                 localStorage.removeItem('algorithm');
@@ -105,9 +105,9 @@ export default function VisualisasiPage() {
                 setQuantum(0);
                 window.location.href = '/'; // redirect ke home
               }}
-              className="bg-pink-400 text-white px-4 py-2 rounded hover:bg-pink-500"
+              className="bg-red-500 text-white px-6 py-3 rounded hover:bg-red-800"
             >
-              ⬅️ Kembali ke Home
+              Kembali ke Home
             </button>
           </div>
 
