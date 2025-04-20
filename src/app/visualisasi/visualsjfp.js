@@ -1,57 +1,91 @@
 import { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 
-export default function VisualFifo({ data }) {
+export default function VisualSJFPreemptive({ data }) {
     const [proses, setProses] = useState([]);
     const [time, setTime] = useState(0);
     const [playing, setPlaying] = useState(false);
-    const timeoutRef = useRef(null);
+    const intervalRef = useRef(null);
 
     useEffect(() => {
         if (!playing) return;
 
-        const timer = setInterval(() => {
+        intervalRef.current = setInterval(() => {
             setTime((t) => t + 1);
         }, 1000);
 
-        return () => clearInterval(timer);
+        return () => clearInterval(intervalRef.current);
     }, [playing]);
 
     useEffect(() => {
         if (!playing || proses.length === 0) return;
 
-        const sedangDiproses = proses.find((p) => p.status === 'proses');
-        if (sedangDiproses) return;
+        setProses((prevProses) => {
+            const updated = [...prevProses];
 
-        const antrianSiap = proses.filter(
-            (p) => p.status === 'antri' && p.arrivalTime <= time
-        );
-        if (antrianSiap.length === 0) return;
-
-        const next = antrianSiap[0]; // FIFO: proses pertama yang datang
-
-        setProses((ps) =>
-            ps.map((p) =>
-                p.nama === next.nama ? { ...p, status: 'proses' } : p
-            )
-        );
-
-        timeoutRef.current = setTimeout(() => {
-            setProses((ps) =>
-                ps.map((p) =>
-                    p.nama === next.nama ? { ...p, status: 'selesai' } : p
-                )
+            const prosesSedangBerjalan = updated.find((p) => p.status === 'proses');
+            const readyQueue = updated.filter(
+                (p) => p.status !== 'selesai' && p.arrivalTime <= time
             );
-        }, next.burstTime * 1000);
-    }, [time, proses, playing]);
+
+            if (readyQueue.length === 0) {
+                return updated;
+            }
+
+            // Pilih proses dengan sisa waktu terkecil
+            const prosesTerpendek = readyQueue.reduce((a, b) =>
+                a.remainingTime <= b.remainingTime ? a : b
+            );
+
+            const hasil = updated.map((p) => {
+                if (p.nama === prosesTerpendek.nama) {
+                    // Proses ini dijalankan
+                    return {
+                        ...p,
+                        status: 'proses',
+                        remainingTime: p.remainingTime - 1,
+                    };
+                } else if (p.status === 'proses') {
+                    // Proses disela
+                    return { ...p, status: 'antri' };
+                }
+                return p;
+            });
+
+            // Tandai proses selesai jika sisa waktu habis
+            // Tandai proses selesai jika sisa waktu habis
+            const final = hasil.map((p) => {
+                if (p.remainingTime === 0 && p.status !== 'selesai') {
+                    return { ...p, status: 'selesai', finishTime: time };
+                }
+                return p;
+            });
+
+
+            // Hentikan jika semua selesai
+            const allDone = final.every((p) => p.status === 'selesai');
+            if (allDone) {
+                setPlaying(false);
+                clearInterval(intervalRef.current);
+            }
+
+            return final;
+        });
+    }, [time]);
+
 
     const handlePlay = () => {
-        const initialProses = data.map((p) => ({ ...p, status: 'antri' }));
+        const initialProses = data.map((p) => ({
+            ...p,
+            status: 'antri',
+            remainingTime: p.burstTime,
+        }));
         setProses(initialProses);
         setTime(0);
         setPlaying(true);
-        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        if (intervalRef.current) clearInterval(intervalRef.current);
     };
+
 
     return (
         <div className="flex flex-col gap-4">
@@ -72,7 +106,7 @@ export default function VisualFifo({ data }) {
                         .filter((p) => p.status === 'antri' && p.arrivalTime <= time)
                         .map((c) => (
                             <div key={c.nama} className="bg-white p-2 rounded shadow">
-                                🧓 {c.nama}
+                                🧓 {c.nama} ({c.remainingTime}s)
                             </div>
                         ))}
                 </div>
@@ -92,6 +126,7 @@ export default function VisualFifo({ data }) {
                     <h2 className="font-bold mb-2">Meja Makan</h2>
                     {proses
                         .filter((p) => p.status === 'selesai')
+                        .sort((a, b) => a.finishTime - b.finishTime) // urutkan berdasarkan waktu selesai
                         .map((c) => (
                             <motion.div
                                 key={c.nama}

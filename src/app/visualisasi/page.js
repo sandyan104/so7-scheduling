@@ -2,6 +2,9 @@
 import { useEffect, useState } from 'react';
 import { motion } from "framer-motion";
 import VisualFifo from './visualfifo';
+import VisualSjfNp from './visualsjfnp';
+import VisualSjfP from './visualsjfp';
+import VisualRoundRobin from './visualisasirr';
 
 export default function VisualisasiPage() {
   const [data, setData] = useState([]);
@@ -41,67 +44,6 @@ export default function VisualisasiPage() {
   const avgWaiting = result.reduce((sum, p) => sum + p.waitingTime, 0) / result.length || 0;
   const avgTurnaround = result.reduce((sum, p) => sum + p.turnaroundTime, 0) / result.length || 0;
 
-  const VisualArea = ({ result }) => {
-    return (
-      <div className="mt-10 p-4 bg-yellow-50 rounded-lg shadow">
-        <h2 className="text-xl font-bold mb-4">Visualisasi Toko Donat</h2>
-
-        <div className="grid grid-cols-3 gap-4">
-          {/* Area Antrean */}
-          <div>
-            <h3 className="font-semibold mb-2">Antrean</h3>
-            <div className="min-h-[100px] bg-pink-100 rounded p-2 flex gap-2">
-              {result.map((p, i) => (
-                <motion.div
-                  key={i}
-                  className="w-12 h-12 rounded-full bg-pink-300 flex items-center justify-center text-white text-sm"
-                  initial={{ x: 0, y: 0 }}
-                  animate={{ x: [0, 30, 0], y: [0, -10, 0] }}
-                  transition={{ repeat: Infinity, duration: 2 }}
-                >
-                  {p.nama[0]}
-                </motion.div>
-              ))}
-            </div>
-          </div>
-
-          {/* Area Kasir */}
-          <div>
-            <h3 className="font-semibold mb-2">Kasir 🍩</h3>
-            <div className="min-h-[100px] bg-green-100 rounded p-2 flex items-center justify-center">
-              <motion.div
-                className="w-16 h-16 rounded-full bg-green-400 text-white flex items-center justify-center text-lg"
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ repeat: Infinity, duration: 1.5 }}
-              >
-                👩‍🍳
-              </motion.div>
-            </div>
-          </div>
-
-          {/* Area Meja Makan */}
-          <div>
-            <h3 className="font-semibold mb-2">Meja Makan</h3>
-            <div className="min-h-[100px] bg-purple-100 rounded p-2 flex flex-wrap gap-2">
-              {result.map((p, i) => (
-                <motion.div
-                  key={i}
-                  className="bg-purple-300 rounded px-2 py-1 text-white text-xs"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: i * 1 }}
-                >
-                  {p.nama[0]} 🍩 <br />
-                  <span className="text-[10px]">⏱️ {p.waitingTime} dtk</span>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <main className="p-4 max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Hasil Simulasi: {algorithm}</h1>
@@ -114,7 +56,7 @@ export default function VisualisasiPage() {
                 <th className="border p-2">Nama</th>
                 <th className="border p-2">Arrival</th>
                 <th className="border p-2">Burst</th>
-                <th className="border p-2">Finish</th>
+                {/* <th className="border p-2">Finish</th> */}
                 <th className="border p-2">Waiting</th>
                 <th className="border p-2">Turnaround</th>
               </tr>
@@ -125,7 +67,7 @@ export default function VisualisasiPage() {
                   <td className="border p-1">{p.nama}</td>
                   <td className="border p-1">{p.arrivalTime}</td>
                   <td className="border p-1">{p.burstTime}</td>
-                  <td className="border p-1">{p.finishTime}</td>
+                  {/* <td className="border p-1">{p.finishTime}</td> */}
                   <td className="border p-1">{p.waitingTime}</td>
                   <td className="border p-1">{p.turnaroundTime}</td>
                 </tr>
@@ -138,18 +80,20 @@ export default function VisualisasiPage() {
             <p>Rata-rata Turnaround Time: <strong>{avgTurnaround.toFixed(2)}</strong></p>
           </div>
 
-          <div className="space-y-2 mt-6">
+          {/* <div className="space-y-2 mt-6">
             {result.map((p, i) => (
               <div key={i} className="bg-yellow-100 px-4 py-2 rounded">
                 🗨️ {p.nama}: "Aku nunggu {p.waitingTime} detik dapet donat!"
               </div>
             ))}
-          </div>
+          </div> */}
 
-          {/* <VisualArea result={result} /> */}
-          {/* <VisualFifo data={result} /> */}
+          {algorithm === 'FIFO' && <VisualFifo data={result} />}
+          {algorithm === 'SJF-NP' && <VisualSjfNp data={result} />}
+          {algorithm === 'SJF-P' && <VisualSjfP data={result} />}
+          {algorithm === 'RR' && <VisualRoundRobin data={result} quantum={quantum}/>}
 
-          <div className="mt-6">
+          < div className="mt-6">
             <button
               onClick={() => {
                 localStorage.removeItem('algorithm');
@@ -170,8 +114,9 @@ export default function VisualisasiPage() {
         </>
       ) : (
         <p>Loading data simulasi...</p>
-      )}
-    </main>
+      )
+      }
+    </main >
   );
 }
 
@@ -370,5 +315,6 @@ function roundRobinSchedule(procs, quantum) {
   // urutkan hasil sesuai proses awal
   return sorted.map(p => result.find(r => r.nama === p.nama));
 }
+
 
 

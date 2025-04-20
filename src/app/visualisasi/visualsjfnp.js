@@ -5,16 +5,17 @@ export default function VisualFifo({ data }) {
     const [proses, setProses] = useState([]);
     const [time, setTime] = useState(0);
     const [playing, setPlaying] = useState(false);
+    const intervalRef = useRef(null);
     const timeoutRef = useRef(null);
 
     useEffect(() => {
         if (!playing) return;
 
-        const timer = setInterval(() => {
+        intervalRef.current = setInterval(() => {
             setTime((t) => t + 1);
         }, 1000);
 
-        return () => clearInterval(timer);
+        return () => clearInterval(intervalRef.current);
     }, [playing]);
 
     useEffect(() => {
@@ -26,9 +27,18 @@ export default function VisualFifo({ data }) {
         const antrianSiap = proses.filter(
             (p) => p.status === 'antri' && p.arrivalTime <= time
         );
-        if (antrianSiap.length === 0) return;
+        if (antrianSiap.length === 0) {
+            const allDone = proses.every((p) => p.status === 'selesai');
+            if (allDone) {
+                setPlaying(false);
+                clearInterval(intervalRef.current);
+            }
+            return;
+        }
 
-        const next = antrianSiap[0]; // FIFO: proses pertama yang datang
+        const next = antrianSiap.reduce((prev, curr) =>
+            prev.burstTime <= curr.burstTime ? prev : curr
+        );
 
         setProses((ps) =>
             ps.map((p) =>
@@ -37,11 +47,19 @@ export default function VisualFifo({ data }) {
         );
 
         timeoutRef.current = setTimeout(() => {
-            setProses((ps) =>
-                ps.map((p) =>
+            setProses((ps) => {
+                const updated = ps.map((p) =>
                     p.nama === next.nama ? { ...p, status: 'selesai' } : p
-                )
-            );
+                );
+
+                const allDone = updated.every((p) => p.status === 'selesai');
+                if (allDone) {
+                    setPlaying(false);
+                    clearInterval(intervalRef.current);
+                }
+
+                return updated;
+            });
         }, next.burstTime * 1000);
     }, [time, proses, playing]);
 
@@ -51,6 +69,7 @@ export default function VisualFifo({ data }) {
         setTime(0);
         setPlaying(true);
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        if (intervalRef.current) clearInterval(intervalRef.current);
     };
 
     return (
