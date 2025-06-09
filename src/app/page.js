@@ -7,7 +7,7 @@ export default function HomePage() {
   const [algorithm, setAlgorithm] = useState('');
   const [processCount, setProcessCount] = useState(0);
   const [processes, setProcesses] = useState([]);
-  const [quantumTime, setQuantumTime] = useState(2);
+  const [quantumTime, setQuantumTime] = useState(0);
   const router = useRouter();
 
   const handleGenerateForm = () => {
@@ -115,16 +115,16 @@ export default function HomePage() {
             ))}
 
             {algorithm === 'RR' && (
-              <p className="text-center my-6">Quantum Time 2 detik</p>
-              // <div className="mb-4">
-              //   <label className="block mt-4">Quantum Time:</label>
-              //   <input
-              //     type="number"
-              //     className="w-full p-2 border rounded"
-              //     value={quantumTime}
-              //     onChange={(e) => setQuantumTime(parseInt(e.target.value))}
-              //   />
-              // </div>
+              // <p className="text-center my-6">Quantum Time 2 detik</p>
+              <div className="mb-4">
+                <label className="block mt-4">Quantum Time:</label>
+                <input
+                  type="number"
+                  className="w-full p-2 border rounded"
+                  value={quantumTime}
+                  onChange={(e) => setQuantumTime(parseInt(e.target.value))}
+                />
+              </div>
             )}
 
             <div className="flex justify-center mt-4">
